@@ -33,9 +33,24 @@ client.once(Events.ClientReady, () => {
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
+
   const command = client.commands.get(interaction.commandName);
-  if (command) await command.execute(interaction);
+  if (!command) return;
+
+  try {
+    // ACKNOWLEDGE IMMEDIATELY
+    await interaction.deferReply();
+
+    await command.execute(interaction);
+
+  } catch (err) {
+    console.error(err);
+    if (!interaction.replied) {
+      await interaction.editReply("Something went wrong.");
+    }
+  }
 });
+
 
 client.on(Events.MessageCreate, message => {
   handleMessage(message);
