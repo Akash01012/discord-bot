@@ -14,7 +14,8 @@ module.exports = {
     let options = interaction.options
       .getString('choices')
       .split(',')
-      .map(o => o.trim());
+      .map(o => o.trim())
+      .filter(Boolean);
 
     let log = 'Elimination process:\n';
 
@@ -25,7 +26,7 @@ module.exports = {
     }
 
     log += `Final choice: ${options[0]}`;
-
-    await interaction.reply(log);
+    await interaction.editReply(log);
   }
 };
+

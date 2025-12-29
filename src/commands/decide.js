@@ -12,18 +12,16 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const options = interaction.options
-      .getString('choices')
-      .split(',')
-      .map(o => o.trim());
+    const raw = interaction.options.getString('choices');
+    const options = raw.split(',').map(o => o.trim()).filter(Boolean);
 
     if (options.length < 2) {
-      return interaction.reply('Please provide at least two options.');
+      return interaction.editReply('Please provide at least two options.');
     }
 
     const result = decide(options);
 
-    await interaction.reply(
+    await interaction.editReply(
       `Options: ${options.join(', ')}\nSelected: ${result.choice}\nReason: ${result.reason}`
     );
   }

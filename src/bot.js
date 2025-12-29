@@ -1,12 +1,11 @@
-
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Collection } = require('discord.js');
 const { handleMessage } = require('./handlers/messageHandler');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const app = express();
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 app.get('/', (_, res) => res.send('Bot is running'));
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
@@ -21,6 +20,7 @@ const client = new Client({
 
 client.commands = new Collection();
 
+// Load commands
 const commandsPath = path.join(__dirname, 'commands');
 for (const file of fs.readdirSync(commandsPath)) {
   const command = require(`./commands/${file}`);
@@ -38,22 +38,16 @@ client.on(Events.InteractionCreate, async interaction => {
   if (!command) return;
 
   try {
-    // ACKNOWLEDGE IMMEDIATELY
-    await interaction.deferReply();
-
-    await command.execute(interaction);
-
+    await interaction.deferReply(); // ACK
+    await command.execute(interaction); // MUST use editReply inside
   } catch (err) {
-    console.error(err);
-    if (!interaction.replied) {
-      await interaction.editReply("Something went wrong.");
+    console.error('COMMAND ERROR:', err);
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply('Something went wrong.');
     }
   }
 });
 
-
-client.on(Events.MessageCreate, message => {
-  handleMessage(message);
-});
+client.on(Events.MessageCreate, handleMessage);
 
 client.login(process.env.DISCORD_TOKEN);
