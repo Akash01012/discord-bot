@@ -1,7 +1,7 @@
 const { detectIntent } = require('../logic/intentEngine');
 
-let isSilent = false;
 let isActivated = false;
+let isSilent = false;
 let introShown = false;
 let okMessageShown = false;
 
@@ -9,54 +9,51 @@ function handleMessage(message) {
   if (message.author.bot) return;
 
   const text = message.content.toLowerCase().trim();
+
+  // ---------- GREETING ----------
   if (
-    text === 'hi' ||
-    text === 'hello' ||
-    text === 'hey' ||
-    text === 'hello everyone' ||
-    text === 'hi everyone'
+    ['hi', 'hello', 'hey', 'hello everyone', 'hi everyone'].includes(text)
   ) {
+    if (introShown) return;
+
+    introShown = true;
+    okMessageShown = false;
+    isSilent = false;
+    isActivated = false;
+
     message.reply(
       'Hello I am Bot.. I help with making decisions. You can ask me to choose, flip a coin, eliminate options, or decision on choices.'
     );
-    introShown = true;
     return;
   }
-  
+
+  // ---------- OK / ACK ----------
   if (text === 'ok' || text === 'okay') {
+    if (okMessageShown) return;
+
+    okMessageShown = true;
+    isSilent = true;
+    isActivated = false;
+
     message.reply(
       'I am here. If you need help with making a decision, just say "bot".'
     );
-    isSilent = true;
-    okMessageShown = true;
     return;
   }
 
   // ---------- BOT ACTIVATION ----------
-  if (text.includes('bot')) {
+  if (text === 'bot') {
     isActivated = true;
     isSilent = false;
 
     message.reply(
-      'I am active now. You can ask me to choose, flip a coin, eliminate options, or decide. just use / command.'
+      'I am active now. You can ask me to choose, flip a coin, eliminate options, or decide. Just use / commands.'
     );
     return;
   }
 
   // ---------- SILENT MODE ----------
-  if (isSilent && !isActivated) {
-    return;
-  }
-
-  // ---------- BEFORE SILENT (NO OK SAID YET) ----------
-  if (!isActivated && !okMessageShown) {
-    message.reply(
-      'I am Bot.. If you need help with making a decision, just say "bot".'
-    );
-    okMessageShown = true;
-    isSilent = true;
-    return;
-  }
+  if (isSilent && !isActivated) return;
 
   // ---------- ACTIVATED MODE ----------
   if (!isActivated) return;
@@ -66,30 +63,30 @@ function handleMessage(message) {
   switch (intent) {
     case 'DECISION':
       message.reply(
-        'You can ask me to choose, flip a coin, eliminate options, or guide a group decision.'
+        'Use /decide, /coinflip, /eliminate, or /random to make a decision.'
       );
       break;
 
     case 'WHY':
       message.reply(
-        'Decisions usually depend on context and priorities. Clear options make decisions easier.'
+        'Decisions depend on priorities. Provide options and I can help.'
       );
       break;
 
     case 'GUIDANCE':
       message.reply(
-        'Try breaking the problem into clear options. Once you do that, I can help you decide.'
+        'Break the problem into clear options, then ask me to decide.'
       );
       break;
 
     case 'QUESTION':
       message.reply(
-        'That depends on the situation. If you want help deciding, please share the available options.'
+        'If you want help deciding, list the available choices.'
       );
       break;
 
     default:
-      // Stay silent during normal chat
+      // stay silent
       break;
   }
 }
